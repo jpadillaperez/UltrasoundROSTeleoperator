@@ -1,0 +1,10 @@
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/uninstall.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/azure_kinect_body_tracking_uninstall.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/body_tracking_node.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/test.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/edit_cache.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/rebuild_cache.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/list_install_components.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/install.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/install/local.dir
+/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build/CMakeFiles/install/strip.dir

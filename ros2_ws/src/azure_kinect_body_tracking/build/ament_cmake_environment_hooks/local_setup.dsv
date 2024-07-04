@@ -1,0 +1,2 @@
+source;share/azure_kinect_body_tracking/environment/ament_prefix_path.sh
+source;share/azure_kinect_body_tracking/environment/path.sh

@@ -1,0 +1,79 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-25d39b0ac268fc1fe196.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "azure_kinect_body_tracking",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "azure_kinect_body_tracking_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-azure_kinect_body_tracking_uninstall-Debug-d7b59ee65d4a3e7e4ee0.json",
+					"name" : "azure_kinect_body_tracking_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "body_tracking_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-body_tracking_node-Debug-e17013b5cfa94dc65e6f.json",
+					"name" : "body_tracking_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-Debug-778200eadeb95cec5eba.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking/build",
+		"source" : "/home/victorkawai/ros2_ws/src/azure_kinect_body_tracking"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}
