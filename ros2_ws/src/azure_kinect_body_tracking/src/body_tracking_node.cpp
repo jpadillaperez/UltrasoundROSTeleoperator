@@ -37,7 +37,7 @@ public:
         depth_image_publisher_ = this->create_publisher<sensor_msgs::msg::Image>("depth_image", 10);
 
         timer_ = this->create_wall_timer(
-            10ms, std::bind(&BodyTrackingNode::timer_callback, this));
+            100ms, std::bind(&BodyTrackingNode::timer_callback, this));
         
         // Initialize Kinect
         k4a_device_open(K4A_DEVICE_DEFAULT, &device_);
@@ -70,45 +70,46 @@ private:
     void initialize_joint_names()
     {
         joint_names_ = {
-            {0, "Pelvis"},
-            {1, "Spine Navel"},
-            {2, "Spine Chest"},
-            {3, "Neck"},
-            {4, "Clavicle Left"},
-            {5, "Shoulder Left"},
-            {6, "Elbow Left"},
-            {7, "Wrist Left"},
-            {8, "Hand Left"},
-            {9, "Hand Tip Left"},
-            {10, "Thumb Left"},
-            {11, "Clavicle Right"},
-            {12, "Shoulder Right"},
-            {13, "Elbow Right"},
-            {14, "Wrist Right"},
-            {15, "Hand Right"},
-            {16, "Hand Tip Right"},
-            {17, "Thumb Right"},
-            {18, "Hip Left"},
-            {19, "Knee Left"},
-            {20, "Ankle Left"},
-            {21, "Foot Left"},
-            {22, "Hip Right"},
-            {23, "Knee Right"},
-            {24, "Ankle Right"},
-            {25, "Foot Right"},
-            {26, "Head"},
-            {27, "Nose"},
-            {28, "Eye Left"},
-            {29, "Ear Left"},
-            {30, "Eye Right"},
-            {31, "Ear Right"}
+            {0, "PELVIS"},
+            {1, "SPINE_NAVAL"},
+            {2, "SPINE_CHEST"},
+            {3, "NECK"},
+            {4, "CLAVICLE_LEFT"},
+            {5, "SHOULDER_LEFT"},
+            {6, "ELBOW_LEFT"},
+            {7, "WRIST_LEFT"},
+            {8, "HAND_LEFT"},
+            {9, "HANDTIP_LEFT"},
+            {10, "THUMB_LEFT"},
+            {11, "CLAVICLE_RIGHT"},
+            {12, "SHOULDER_RIGHT"},
+            {13, "ELBOW_RIGHT"},
+            {14, "WRIST_RIGHT"},
+            {15, "HAND_RIGHT"},
+            {16, "HANDTIP_RIGHT"},
+            {17, "THUMB_RIGHT"},
+            {18, "HIP_LEFT"},
+            {19, "KNEE_LEFT"},
+            {20, "ANKLE_LEFT"},
+            {21, "FOOT_LEFT"},
+            {22, "HIP_RIGHT"},
+            {23, "KNEE_RIGHT"},
+            {24, "ANKLE_RIGHT"},
+            {25, "FOOT_RIGHT"},
+            {26, "HEAD"},
+            {27, "NOSE"},
+            {28, "EYE_LEFT"},
+            {29, "EAR_LEFT"},
+            {30, "EYE_RIGHT"},
+            {31, "EAR_RIGHT"}
         };
 
+
         valid_joint_names_ = {
-            "Pelvis", "Spine Navel", "Spine Chest", "Neck", "Clavicle Left", "Shoulder Left", 
-            "Elbow Left", "Wrist Left", "Hand Left", "Clavicle Right", "Shoulder Right", 
-            "Elbow Right", "Wrist Right", "Hand Right", "Hip Left", "Knee Left", "Ankle Left", 
-            "Foot Left", "Hip Right", "Knee Right", "Ankle Right", "Foot Right", "Head"
+            "PELVIS", "SPINE_NAVAL", "SPINE_CHEST", "NECK", "CLAVICLE_LEFT", "SHOULDER_LEFT", 
+            "ELBOW_LEFT", "WRIST_LEFT", "HAND_LEFT", "HANDTIP_LEFT", "THUMB_LEFT", "CLAVICLE_RIGHT", "SHOULDER_RIGHT", 
+            "ELBOW_RIGHT", "WRIST_RIGHT", "HAND_RIGHT", "HANDTIP_RIGHT", "THUMB_RIGHT", "HIP_LEFT", "KNEE_LEFT", "ANKLE_LEFT", 
+            "FOOT_LEFT", "HIP_RIGHT", "KNEE_RIGHT", "ANKLE_RIGHT", "FOOT_RIGHT", "HEAD"
         };
     }
 
@@ -196,14 +197,16 @@ private:
 
         // Add lines to skeleton marker
         std::vector<std::pair<std::string, std::string>> connections = {
-            {"Pelvis", "Spine Navel"}, {"Spine Navel", "Spine Chest"}, {"Spine Chest", "Neck"},
-            {"Neck", "Head"}, {"Neck", "Clavicle Left"}, {"Clavicle Left", "Shoulder Left"},
-            {"Shoulder Left", "Elbow Left"}, {"Elbow Left", "Wrist Left"}, {"Wrist Left", "Hand Left"},
-            {"Neck", "Clavicle Right"}, {"Clavicle Right", "Shoulder Right"},
-            {"Shoulder Right", "Elbow Right"}, {"Elbow Right", "Wrist Right"},
-            {"Wrist Right", "Hand Right"}, {"Pelvis", "Hip Left"}, {"Hip Left", "Knee Left"},
-            {"Knee Left", "Ankle Left"}, {"Ankle Left", "Foot Left"}, {"Pelvis", "Hip Right"},
-            {"Hip Right", "Knee Right"}, {"Knee Right", "Ankle Right"}, {"Ankle Right", "Foot Right"}
+            {"PELVIS", "SPINE_NAVAL"}, {"SPINE_NAVAL", "SPINE_CHEST"}, {"SPINE_CHEST", "NECK"},
+            {"NECK", "HEAD"}, {"NECK", "CLAVICLE_LEFT"}, {"CLAVICLE_LEFT", "SHOULDER_LEFT"},
+            {"SHOULDER_LEFT", "ELBOW_LEFT"}, {"ELBOW_LEFT", "WRIST_LEFT"}, {"WRIST_LEFT", "HAND_LEFT"},
+            {"HAND_LEFT", "THUMB_LEFT"}, {"HAND_LEFT", "HANDTIP_LEFT"},
+            {"NECK", "CLAVICLE_RIGHT"}, {"CLAVICLE_RIGHT", "SHOULDER_RIGHT"},
+            {"SHOULDER_RIGHT", "ELBOW_RIGHT"}, {"ELBOW_RIGHT", "WRIST_RIGHT"},
+            {"WRIST_RIGHT", "HAND_RIGHT"}, {"HAND_RIGHT", "THUMB_RIGHT"}, {"HAND_RIGHT", "HANDTIP_RIGHT"},
+            {"PELVIS", "HIP_LEFT"}, {"HIP_LEFT", "KNEE_LEFT"},
+            {"KNEE_LEFT", "ANKLE_LEFT"}, {"ANKLE_LEFT", "FOOT_LEFT"}, {"PELVIS", "HIP_RIGHT"},
+            {"HIP_RIGHT", "KNEE_RIGHT"}, {"KNEE_RIGHT", "ANKLE_RIGHT"}, {"ANKLE_RIGHT", "FOOT_RIGHT"}
         };
 
         for (const auto& connection : connections)

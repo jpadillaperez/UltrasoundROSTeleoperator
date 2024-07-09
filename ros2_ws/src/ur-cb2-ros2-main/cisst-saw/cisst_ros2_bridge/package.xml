@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>cisst_ros2_bridge</name>
+  <version>2.0.0</version>
+  <description>The cisst_ros2_bridge package</description>
+  <maintainer email="anton.deguet@jhu.edu">Anton Deguet</maintainer>
+  <author email="anton.deguet@jhu.edu">Anton Deguet</author>
+  <author email="zihan.chen@jhu.edu">Zihan Chen</author>
+  <license>CISST</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>cisst_msgs</depend>
+  <depend>tf2_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>cisst</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
