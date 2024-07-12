@@ -10,6 +10,8 @@
 #include <thread>
 #include <cmath>
 #include <chrono>
+#include <std_msgs/msg/string.hpp>
+#include <trajectory_msgs/msg/joint_trajectory.hpp>
 
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("ur5_human");
 
@@ -19,11 +21,19 @@ public:
   UR5Human()
     : Node("ur5_human"),
       max_waypoints_(10),
-      last_waypoint_time_(std::chrono::steady_clock::now())
+      last_waypoint_time_(std::chrono::steady_clock::now()),
+      unity_confirmation_received_(false)
   {
     subscription_ = this->create_subscription<sensor_msgs::msg::JointState>(
       "/body_tracking_data", 10,
       std::bind(&UR5Human::bodyTrackingCallback, this, std::placeholders::_1));
+
+    trajectory_publisher_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
+      "/trajectory_to_unity", 10);
+
+    unity_confirmation_subscription_ = this->create_subscription<std_msgs::msg::String>(
+      "/unity_confirmation", 10,
+      std::bind(&UR5Human::unityConfirmationCallback, this, std::placeholders::_1));
   }
 
   void init()
@@ -65,6 +75,10 @@ public:
         last_waypoint_time_ = current_time;
       }
     }
+  }
+
+  bool isUnityConfirmationReceived() const {
+    return unity_confirmation_received_;
   }
 
   void planAndExecute()
@@ -133,6 +147,29 @@ public:
       visual_tools_->publishTrajectoryLine(smooth_plan.trajectory_, move_group_->getCurrentState()->getJointModelGroup("ur_manipulator"));
       visual_tools_->trigger();
 
+      // Publish the trajectory to Unity
+      trajectory_publisher_->publish(smooth_plan.trajectory_.joint_trajectory);
+      RCLCPP_INFO(LOGGER, "Trajectory published to Unity. Waiting for confirmation...");
+
+      // Wait for confirmation from Unity
+			auto start_time = std::chrono::steady_clock::now();
+			while (!isUnityConfirmationReceived() && rclcpp::ok()) {
+					auto current_time = std::chrono::steady_clock::now();
+					if (std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count() > 30) {
+							RCLCPP_ERROR(LOGGER, "Timeout waiting for Unity confirmation.");
+							return;
+					}
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			}
+
+			if (!rclcpp::ok()) {
+					RCLCPP_ERROR(LOGGER, "ROS context is no longer valid. Exiting.");
+					return;
+			}
+
+      // Reset the confirmation flag
+      unity_confirmation_received_ = false;
+
       // Execute the plan
       RCLCPP_INFO(LOGGER, "Executing smooth plan.");
       bool execution_success = (move_group_->execute(smooth_plan) == moveit::core::MoveItErrorCode::SUCCESS);
@@ -144,6 +181,13 @@ public:
     }
   }
 
+  void unityConfirmationCallback(const std_msgs::msg::String::SharedPtr msg)
+  {
+    if (msg->data == "CONFIRMED") {
+      RCLCPP_INFO(LOGGER, "Received confirmation from Unity.");
+      unity_confirmation_received_ = true;
+    }
+  }
 
 private:
   std::unordered_map<std::string, geometry_msgs::msg::Point> processBodyTrackingData(const std::vector<std::string>& names, const std::vector<double>& positions)
@@ -253,6 +297,9 @@ private:
   std::vector<std::vector<double>> waypoints_;
   const size_t max_waypoints_;
   std::chrono::steady_clock::time_point last_waypoint_time_;
+  rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr trajectory_publisher_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr unity_confirmation_subscription_;
+  bool unity_confirmation_received_;
 };
 
 int main(int argc, char** argv)
@@ -262,6 +309,7 @@ int main(int argc, char** argv)
   node->init();
 
   rclcpp::executors::SingleThreadedExecutor executor;
+	
   executor.add_node(node);
   std::thread([&executor]() { executor.spin(); }).detach();
 
