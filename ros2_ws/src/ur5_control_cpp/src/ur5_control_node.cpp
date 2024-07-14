@@ -10,8 +10,6 @@
 #include <thread>
 #include <cmath>
 #include <chrono>
-#include <std_msgs/msg/string.hpp>
-#include <trajectory_msgs/msg/joint_trajectory.hpp>
 
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("ur5_human");
 
@@ -20,33 +18,18 @@ class UR5Human : public rclcpp::Node
 public:
   UR5Human()
     : Node("ur5_human"),
-      max_waypoints_(10),
-      last_waypoint_time_(std::chrono::steady_clock::now()),
-      unity_confirmation_received_(false)
+      max_waypoints_(20),
+      last_waypoint_time_(std::chrono::steady_clock::now())
   {
     subscription_ = this->create_subscription<sensor_msgs::msg::JointState>(
       "/body_tracking_data", 10,
       std::bind(&UR5Human::bodyTrackingCallback, this, std::placeholders::_1));
-
-    trajectory_publisher_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
-      "/trajectory_to_unity", 10);
-
-    unity_confirmation_subscription_ = this->create_subscription<std_msgs::msg::String>(
-      "/unity_confirmation", 10,
-      std::bind(&UR5Human::unityConfirmationCallback, this, std::placeholders::_1));
   }
 
   void init()
   {
     static const std::string PLANNING_GROUP = "ur_manipulator";
     move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(shared_from_this(), PLANNING_GROUP);
-    visual_tools_ = std::make_shared<moveit_visual_tools::MoveItVisualTools>(
-      shared_from_this(), "base_link", "rviz_visual_tools", move_group_->getRobotModel());
-    visual_tools_->deleteAllMarkers();
-    visual_tools_->loadRemoteControl();
-    
-    // Disable waiting for subscribers
-    visual_tools_->trigger();
   }
 
   void bodyTrackingCallback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -77,14 +60,8 @@ public:
     }
   }
 
-  bool isUnityConfirmationReceived() const {
-    return unity_confirmation_received_;
-  }
-
   void planAndExecute()
   {
-    visual_tools_->publishText(Eigen::Isometry3d::Identity(), "UR5Human", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
-    visual_tools_->trigger();
 
     // Define the initial joint positions (arm stretched horizontally)
     std::vector<double> initial_joint_positions = {0.0, -M_PI/2, 0.0, -M_PI/2, 0.0, 0.0};
@@ -143,33 +120,6 @@ public:
       moveit::planning_interface::MoveGroupInterface::Plan smooth_plan;
       smooth_plan.trajectory_ = trajectory;
 
-      // Visualize the trajectory
-      visual_tools_->publishTrajectoryLine(smooth_plan.trajectory_, move_group_->getCurrentState()->getJointModelGroup("ur_manipulator"));
-      visual_tools_->trigger();
-
-      // Publish the trajectory to Unity
-      trajectory_publisher_->publish(smooth_plan.trajectory_.joint_trajectory);
-      RCLCPP_INFO(LOGGER, "Trajectory published to Unity. Waiting for confirmation...");
-
-      // Wait for confirmation from Unity
-			auto start_time = std::chrono::steady_clock::now();
-			while (!isUnityConfirmationReceived() && rclcpp::ok()) {
-					auto current_time = std::chrono::steady_clock::now();
-					if (std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count() > 30) {
-							RCLCPP_ERROR(LOGGER, "Timeout waiting for Unity confirmation.");
-							return;
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			}
-
-			if (!rclcpp::ok()) {
-					RCLCPP_ERROR(LOGGER, "ROS context is no longer valid. Exiting.");
-					return;
-			}
-
-      // Reset the confirmation flag
-      unity_confirmation_received_ = false;
-
       // Execute the plan
       RCLCPP_INFO(LOGGER, "Executing smooth plan.");
       bool execution_success = (move_group_->execute(smooth_plan) == moveit::core::MoveItErrorCode::SUCCESS);
@@ -181,13 +131,6 @@ public:
     }
   }
 
-  void unityConfirmationCallback(const std_msgs::msg::String::SharedPtr msg)
-  {
-    if (msg->data == "CONFIRMED") {
-      RCLCPP_INFO(LOGGER, "Received confirmation from Unity.");
-      unity_confirmation_received_ = true;
-    }
-  }
 
 private:
   std::unordered_map<std::string, geometry_msgs::msg::Point> processBodyTrackingData(const std::vector<std::string>& names, const std::vector<double>& positions)
@@ -251,12 +194,12 @@ private:
     // Wrist 1 (flexion/extension)
     Eigen::Vector3d wrist_direction = (Eigen::Vector3d(handtip.x, handtip.y, handtip.z) - Eigen::Vector3d(wrist.x, wrist.y, wrist.z)).normalized();
     double wrist_flex = std::atan2(wrist_direction.z(), std::sqrt(wrist_direction.x()*wrist_direction.x() + wrist_direction.y()*wrist_direction.y()));
-    joint_angles[3] = -M_PI/2 + wrist_flex;  // Shift by -90 degrees to align with initial position
+    joint_angles[3] = -M_PI/2;  // Shift by -90 degrees to align with initial position
 
     // Wrist 2 (ulnar/radial deviation)
     Eigen::Vector3d thumb_to_hand = (Eigen::Vector3d(thumb.x, thumb.y, thumb.z) - Eigen::Vector3d(hand.x, hand.y, hand.z)).normalized();
     double wrist_dev = std::atan2(thumb_to_hand.y(), thumb_to_hand.x());
-    joint_angles[4] = wrist_dev;
+    joint_angles[4] = 0.0;
 
     // Wrist 3 (forearm rotation)
     joint_angles[5] = 0.0;  // Set to constant 0
@@ -293,13 +236,9 @@ private:
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr subscription_;
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
-  std::shared_ptr<moveit_visual_tools::MoveItVisualTools> visual_tools_;
   std::vector<std::vector<double>> waypoints_;
   const size_t max_waypoints_;
   std::chrono::steady_clock::time_point last_waypoint_time_;
-  rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr trajectory_publisher_;
-  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr unity_confirmation_subscription_;
-  bool unity_confirmation_received_;
 };
 
 int main(int argc, char** argv)
@@ -309,7 +248,6 @@ int main(int argc, char** argv)
   node->init();
 
   rclcpp::executors::SingleThreadedExecutor executor;
-	
   executor.add_node(node);
   std::thread([&executor]() { executor.spin(); }).detach();
 
