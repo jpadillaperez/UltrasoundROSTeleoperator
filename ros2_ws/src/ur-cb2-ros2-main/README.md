@@ -41,6 +41,8 @@ ros2 launch ur_cb2_bringup ur_control.launch.py ur_type:=<UR_TYPE> robot_ip:=<IP
 Example:
 ```bash
 ros2 launch ur_cb2_bringup ur_control.launch.py ur_type:=ur5 robot_ip:=127.0.0.1 use_fake_hardware:=true launch_rviz:=true
+
+ros2 launch ur_cb2_bringup ur_control.launch.py ur_type:=ur5 robot_ip:=192.168.1.195 use_fake_hardware:=false launch_rviz:=true
 ```
 - <UR_TYPE> can be 'ur5' or 'ur10'. For e-Series robots, please use official Universal Robot driver.
 - You can see all the launch arguments by `--show-args`
